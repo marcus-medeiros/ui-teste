@@ -297,39 +297,47 @@ elif escolha_pagina == "Mapas":
 
     MAPBOX_TOKEN = "pk.eyJ1IjoibXZtc29ydGUiLCJhIjoiY21laXY4MzIxMDZrbzJyb2Q0aXFhbGh4bSJ9.PH2sx9UgmR_FW_p6AaigJw"
 
-    df = pd.DataFrame({
-    "lat": [-23.55, -22.90, -25.43],
-    "lon": [-46.63, -43.17, -49.27],
-    "cidade": ["São Paulo", "Rio de Janeiro", "Curitiba"]
-})
-
-    # Dicionário de cores (em RGBA)
-    cores = {
-        "São Paulo": [255, 0, 0, 200],       # vermelho
-        "Rio de Janeiro": [0, 0, 255, 200],  # azul
-        "Curitiba": [100, 100, 100, 200]     # cinza
+    # GeoJSON simplificado para SP (um retângulo de exemplo)
+    geojson_sp = {
+    "type": "FeatureCollection",
+    "features": [
+        {
+        "type": "Feature",
+        "properties": {"nome": "São Paulo"},
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [[
+            [-53.1, -20.5],
+            [-53.1, -25.5],
+            [-45.0, -25.5],
+            [-45.0, -20.5],
+            [-53.1, -20.5]
+            ]]
+        }
+        }
+    ]
     }
 
-    # Adiciona coluna de cor com base na cidade
-    df["cor"] = df["cidade"].map(cores)
-
-    # Camada de pontos
-    layer = pdk.Layer(
-        "ScatterplotLayer",
-        data=df,
-        get_position='[lon, lat]',
-        get_fill_color="cor",  # usa a coluna 'cor'
-        get_radius=20000,
+    # Camada de polígono
+    polygon_layer = pdk.Layer(
+        "GeoJsonLayer",
+        geojson_sp,
+        stroked=True,
+        filled=True,
+        extruded=False,
+        get_fill_color="[255, 0, 0, 180]",  # vermelho com transparência
+        get_line_color=[255, 255, 255],
+        line_width_min_pixels=2,
     )
 
-    # Estado inicial do mapa
-    view_state = pdk.ViewState(latitude=-23, longitude=-46, zoom=4)
+    # Estado inicial do mapa (aprox. centro SP)
+    view_state = pdk.ViewState(latitude=-22.5, longitude=-48, zoom=6)
 
     # Renderizar
     deck = pdk.Deck(
-        map_style="mapbox://styles/mapbox/light-v9",
+        layers=[polygon_layer],
         initial_view_state=view_state,
-        layers=[layer],
+        map_style="mapbox://styles/mapbox/light-v9",
         api_keys={"mapbox": MAPBOX_TOKEN}
     )
 
