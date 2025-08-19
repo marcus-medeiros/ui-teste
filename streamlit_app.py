@@ -294,6 +294,33 @@ elif escolha_pagina == "Mapas":
     
     st.map(df)
     st.divider()
+
+        # DataFrame com coordenadas e uma coluna de categoria
+    df2 = pd.DataFrame({
+        "lat": [-23.55, -22.90, -25.43],
+        "lon": [-46.63, -43.17, -49.27],
+        "cidade": ["São Paulo", "Rio de Janeiro", "Curitiba"],
+        "valor": [100, 200, 300]  # pode ser usado no tamanho/cor
+    })
+
+    # Criando camada de pontos com cores diferentes
+    layer = pdk.Layer(
+        "ScatterplotLayer",
+        data=df2,
+        get_position='[lon, lat]',
+        get_fill_color='[valor, 50, 200, 160]',  # cor baseada na coluna "valor"
+        get_radius=20000,  # tamanho em metros
+    )
+
+    # Estado inicial do mapa
+    view_state = pdk.ViewState(latitude=-23, longitude=-46, zoom=4)
+
+    # Renderizar
+    st.pydeck_chart(pdk.Deck(
+        layers=[layer],
+        initial_view_state=view_state,
+        map_style="mapbox://styles/mapbox/light-v9"
+    ))
 # -----------------------------------------------------------------------
 # WIDGETS INTERATIVOS
 # -----------------------------------------------------------------------
