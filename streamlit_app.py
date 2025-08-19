@@ -336,54 +336,37 @@ elif escolha_pagina == "Mapas":
         ]
     }
 
-
-    # --- Configuração do Mapa Pydeck ---
-
-    # Chave da API do Mapbox (necessária para o fundo do mapa)
-    # Lembre-se de criar o arquivo .streamlit/secrets.toml com sua chave
-    try:
-        MAPBOX_API_KEY = st.secrets["MAPBOX_API_KEY"]
-    except FileNotFoundError:
-        st.error("Arquivo secrets.toml não encontrado. O mapa de fundo não será exibido.")
-        st.info("Crie um arquivo em `.streamlit/secrets.toml` e adicione: `MAPBOX_API_KEY = 'sua_chave_aqui'`")
-        MAPBOX_API_KEY = ""
-
-
     # Define a visualização inicial do mapa
     view_state = pdk.ViewState(
-        latitude=-22.5,  # Latitude central de SP
-        longitude=-48.6, # Longitude central de SP
+        latitude=-22.5,
+        longitude=-48.6,
         zoom=5.5,
-        pitch=0 # Sem inclinação para uma visão 2D
+        pitch=0
     )
 
-    # Define a camada GeoJsonLayer para desenhar o polígono
+    # Define a camada GeoJsonLayer
     geojson_layer = pdk.Layer(
         'GeoJsonLayer',
-        data=geojson_sp_simplificado,
+        data=geojson_sp_simplificado, # Usando o geojson simplificado
         opacity=0.4,
-        stroked=True,         # Desenha a borda
-        filled=True,          # Preenche a área
-        extruded=False,        # Sem efeito 3D
-        wireframe=True,
-        get_fill_color='[65, 105, 225]',  # Cor do preenchimento (Azul Royal)
-        get_line_color='[0, 0, 139]',    # Cor da borda (Azul Escuro)
+        stroked=True,
+        filled=True,
+        get_fill_color='[65, 105, 225]',
+        get_line_color='[0, 0, 139]',
         get_line_width=2500,
     )
 
-    # Monta o objeto Deck com todas as configurações
+    # Monta o objeto Deck, passando a chave carregada dos segredos
     r = pdk.Deck(
         layers=[geojson_layer],
         initial_view_state=view_state,
         map_style=pdk.map_styles.MAPBOX_LIGHT,
-        mapbox_key=MAPBOX_API_KEY
+        mapbox_key=MAPBOX_API_KEY # Usa a chave que buscamos com st.secrets
     )
 
-    # Renderiza o mapa no Streamlit
+    # Renderiza o mapa
     st.pydeck_chart(r)
 
-    st.subheader("O GeoJSON Utilizado:")
-    st.json(geojson_sp_simplificado)
 # -----------------------------------------------------------------------
 # WIDGETS INTERATIVOS
 # -----------------------------------------------------------------------
