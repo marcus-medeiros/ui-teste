@@ -85,7 +85,6 @@ if escolha_pagina == "Página Inicial":
 
     Vamos começar! Escolha uma seção no menu para explorar.
     """)
-    st.image("https://storage.googleapis.com/streamlit-public-media/streamlit-img-og.png")
 
 # -----------------------------------------------------------------------
 # ELEMENTOS DE TEXTO
