@@ -5,6 +5,9 @@ import time
 import matplotlib.pyplot as plt
 import pydeck as pdk
 
+
+MAPBOX_API_KEY = "pk.eyJ1IjoibXZtc29ydGUiLCJhIjoiY21laXY4MzIxMDZrbzJyb2Q0aXFhbGh4bSJ9.PH2sx9UgmR_FW_p6AaigJw"
+
 # =======================================================================
 # CONFIGURAÇÃO DA PÁGINA
 # st.set_page_config() deve ser o primeiro comando Streamlit no script.
