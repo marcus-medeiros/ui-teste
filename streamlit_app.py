@@ -361,7 +361,7 @@ elif escolha_pagina == "Mapas":
         layers=[geojson_layer],
         initial_view_state=view_state,
         map_style=pdk.map_styles.MAPBOX_LIGHT,
-        mapbox_key=MAPBOX_API_KEY # Usa a chave que buscamos com st.secrets
+        mapbox_key= MAPBOX_TOKEN # Usa a chave que buscamos com st.secrets
     )
 
     # Renderiza o mapa
