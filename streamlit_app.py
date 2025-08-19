@@ -297,32 +297,40 @@ elif escolha_pagina == "Mapas":
 
     MAPBOX_TOKEN = "pk.eyJ1IjoibXZtc29ydGUiLCJhIjoiY21laXY4MzIxMDZrbzJyb2Q0aXFhbGh4bSJ9.PH2sx9UgmR_FW_p6AaigJw"
 
-    # DataFrame de exemplo
     df = pd.DataFrame({
-        "lat": [-23.55, -22.90, -25.43],
-        "lon": [-46.63, -43.17, -49.27],
-        "cidade": ["São Paulo", "Rio de Janeiro", "Curitiba"],
-        "valor": [100, 200, 300]
-    })
+    "lat": [-23.55, -22.90, -25.43],
+    "lon": [-46.63, -43.17, -49.27],
+    "cidade": ["São Paulo", "Rio de Janeiro", "Curitiba"]
+})
+
+    # Dicionário de cores (em RGBA)
+    cores = {
+        "São Paulo": [255, 0, 0, 200],       # vermelho
+        "Rio de Janeiro": [0, 0, 255, 200],  # azul
+        "Curitiba": [100, 100, 100, 200]     # cinza
+    }
+
+    # Adiciona coluna de cor com base na cidade
+    df["cor"] = df["cidade"].map(cores)
 
     # Camada de pontos
     layer = pdk.Layer(
         "ScatterplotLayer",
         data=df,
         get_position='[lon, lat]',
-        get_fill_color='[valor, 50, 200, 160]',
+        get_fill_color="cor",  # usa a coluna 'cor'
         get_radius=20000,
     )
 
     # Estado inicial do mapa
     view_state = pdk.ViewState(latitude=-23, longitude=-46, zoom=4)
 
-    # Renderizar o mapa com token do Mapbox
+    # Renderizar
     deck = pdk.Deck(
         map_style="mapbox://styles/mapbox/light-v9",
         initial_view_state=view_state,
         layers=[layer],
-        api_keys={"mapbox": MAPBOX_TOKEN}  # token aqui
+        api_keys={"mapbox": MAPBOX_TOKEN}
     )
 
     st.pydeck_chart(deck)
