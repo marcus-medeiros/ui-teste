@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pydeck as pdk
 
 
-
+mapbox_key = st.secrets["MAPBOX_API_KEY"]
 
 # =======================================================================
 # CONFIGURAÇÃO DA PÁGINA
