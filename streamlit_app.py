@@ -169,52 +169,102 @@ col3.metric("Vendas (Mês)", "R$ 150.3k", "12%", delta_color="inverse")
 # -----------------------------------------------------------------------
 # GRÁFICOS
 # -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
+# GRÁFICOS
+# -----------------------------------------------------------------------
 elif escolha_pagina == "Gráficos":
     st.header("📈 Gráficos")
+    st.info("Todos os gráficos abaixo são gerados a partir do mesmo conjunto de dados aleatórios para facilitar a comparação.")
 
     st.subheader("`st.line_chart`")
+    st.markdown("Ideal para visualizar dados ao longo do tempo ou de uma sequência contínua.")
     st.line_chart(chart_data)
     st.code("st.line_chart(dados)")
     st.divider()
 
     st.subheader("`st.area_chart`")
+    st.markdown("Semelhante ao gráfico de linhas, mas preenche a área abaixo, útil para mostrar volumes cumulativos.")
     st.area_chart(chart_data)
     st.code("st.area_chart(dados)")
     st.divider()
     
     st.subheader("`st.bar_chart`")
+    st.markdown("Excelente para comparar valores entre diferentes categorias.")
     st.bar_chart(chart_data)
     st.code("st.bar_chart(dados)")
     st.divider()
 
-    st.subheader("`st.pyplot` (com Matplotlib)")
-    st.markdown("Use para qualquer gráfico de bibliotecas como Matplotlib ou Seaborn.")
-    fig, ax = plt.subplots()
-    ax.hist(chart_data['a'], bins=10)
-    ax.set_title("Histograma com Matplotlib")
+    st.subheader("`st.pyplot` (com Matplotlib) - CORRIGIDO")
+    st.markdown("Use para total customização. Agora mostrando um gráfico de dispersão para comparar as colunas 'a' e 'b', com a cor baseada na coluna 'c'.")
+    
+    # Criando a figura e os eixos com Matplotlib
+    fig, ax = plt.subplots(figsize=(8, 5))
+    
+    # Criando o gráfico de dispersão (scatter plot)
+    scatter = ax.scatter(
+        chart_data['a'], 
+        chart_data['b'], 
+        c=chart_data['c'], # Usa a coluna 'c' para definir a cor dos pontos
+        cmap='viridis'     # Define um mapa de cores
+    )
+    
+    # Adicionando rótulos, título e uma barra de cores
+    ax.set_xlabel("Eixo A")
+    ax.set_ylabel("Eixo B")
+    ax.set_title("Gráfico de Dispersão Customizado com Matplotlib")
+    ax.grid(True)
+    fig.colorbar(scatter, ax=ax, label="Valor de C")
+    
+    # Exibindo o gráfico no Streamlit
     st.pyplot(fig)
+    
     st.code("""
 import matplotlib.pyplot as plt
+
+# Criando a figura e os eixos
 fig, ax = plt.subplots()
-ax.hist(dados['a'], bins=10)
+
+# Criando o gráfico de dispersão
+scatter = ax.scatter(
+    dados['a'], 
+    dados['b'], 
+    c=dados['c'], # Cor baseada na coluna 'c'
+    cmap='viridis'
+)
+
+# Adicionando customizações
+ax.set_xlabel("Eixo A")
+ax.set_ylabel("Eixo B")
+ax.set_title("Gráfico de Dispersão Customizado")
+ax.grid(True)
+fig.colorbar(scatter, ax=ax, label="Valor de C")
+
+# Exibindo no Streamlit
 st.pyplot(fig)
     """)
     st.divider()
     
     st.subheader("`st.plotly_chart`")
-    st.markdown("Para gráficos interativos do Plotly.")
+    st.markdown("Ótimo para gráficos interativos (zoom, pan, tooltips) com poucas linhas de código.")
     try:
         import plotly.express as px
-        fig_plotly = px.scatter(chart_data, x='a', y='b', color='c', title="Gráfico de Dispersão com Plotly")
+        fig_plotly = px.scatter(
+            chart_data, 
+            x='a', 
+            y='b', 
+            color='c', 
+            title="Gráfico de Dispersão Interativo com Plotly"
+        )
         st.plotly_chart(fig_plotly, use_container_width=True)
     except ImportError:
         st.warning("A biblioteca Plotly não está instalada. Execute: pip install plotly")
     st.code("""
 import plotly.express as px
-fig = px.scatter(dados, x='a', y='b')
-st.plotly_chart(fig)
+fig = px.scatter(dados, x='a', y='b', color='c')
+st.plotly_chart(fig, use_container_width=True)
     """)
-    
+
+
 # -----------------------------------------------------------------------
 # MAPAS
 # -----------------------------------------------------------------------
@@ -222,55 +272,89 @@ elif escolha_pagina == "Mapas":
     st.header("🗺️ Mapas")
     
     st.subheader("`st.map`")
-    st.markdown("A forma mais simples de colocar pontos em um mapa.")
+    st.markdown("A forma mais simples de colocar pontos em um mapa. Ótima para visualizações rápidas.")
     st.map(map_data, zoom=10)
     st.code("st.map(map_data, zoom=10)")
     st.divider()
     
-    st.subheader("`st.pydeck_chart`")
-    st.markdown("Para mapas complexos, com camadas e alta performance.")
+    st.subheader("`st.pydeck_chart` - APRIMORADO")
+    st.markdown("Para mapas complexos e informativos. Agora com **cores e tamanhos dinâmicos** baseados na magnitude.")
+
+    # --- INÍCIO DA LÓGICA DE CUSTOMIZAÇÃO ---
+
+    # 1. Função para mapear a magnitude (0-100) para uma cor (verde -> amarelo -> vermelho)
+    def magnitude_to_color(magnitude):
+        # Normaliza a magnitude para uma escala de 0 a 1
+        normalized_magnitude = magnitude / 100.0
+        # Interpola a cor: começa verde, passa por amarelo e termina vermelho
+        red = int(255 * normalized_magnitude)
+        green = int(255 * (1 - normalized_magnitude))
+        # Retorna uma lista no formato [R, G, B, Opacidade]
+        return [red, green, 0, 180]
+
+    # 2. Aplica a função para criar uma nova coluna 'color' no DataFrame
+    map_data['color'] = map_data['magnitude'].apply(magnitude_to_color)
     
-    # Definindo a visualização inicial do mapa
+    # --- FIM DA LÓGICA DE CUSTOMIZAÇÃO ---
+
+    # Define a visualização inicial do mapa (localização, zoom, ângulo)
     view_state = pdk.ViewState(
         latitude=-23.55,
         longitude=-46.63,
         zoom=10,
-        pitch=50  # Ângulo de inclinação para visualização 3D
+        pitch=50  # Ângulo de inclinação para um efeito 3D
     )
     
-    # Camada de pontos
+    # Define a camada de visualização (Layer)
     layer = pdk.Layer(
-        'ScatterplotLayer',
-        data=map_data,
-        get_position='[lon, lat]',
-        get_color='[200, 30, 0, 160]',
-        get_radius='magnitude * 100',
-        pickable=True
+        'ScatterplotLayer',      # Tipo de camada: pontos de dispersão
+        data=map_data,           # Fonte dos dados
+        get_position='[lon, lat]', # Colunas de longitude e latitude
+        get_color='color',       # Usa a coluna 'color' que acabamos de criar
+        get_radius='magnitude * 75', # Raio proporcional à magnitude
+        pickable=True            # Habilita o tooltip ao passar o mouse
     )
     
-    # Tooltip
+    # Configura o tooltip que aparece ao passar o mouse
     tooltip = {
-        "html": "<b>{tooltip}</b> <br/> Magnitude: {magnitude} <br/> Posição: [{lon}, {lat}]",
+        "html": "<b>{tooltip}</b> <br/> Magnitude: {magnitude} <br/> Posição: [{lon:.4f}, {lat:.4f}]",
         "style": {"backgroundColor": "steelblue", "color": "white"}
     }
     
-    # Renderizando o mapa
+    # Monta o objeto Deck com todas as configurações
     r = pdk.Deck(
         layers=[layer],
         initial_view_state=view_state,
-        map_style='mapbox://styles/mapbox/light-v9',
+        map_style='mapbox://styles/mapbox/dark-v9', # Estilo de mapa escuro para destacar as cores
         tooltip=tooltip
     )
+    
+    # Renderiza o mapa no Streamlit
     st.pydeck_chart(r)
     
-    st.info("Passe o mouse sobre os pontos para ver o tooltip interativo!")
+    st.info("Passe o mouse sobre os pontos para ver o tooltip interativo! Note como a cor e o tamanho agora refletem a magnitude.")
     st.code("""
-import pydeck as pdk
-# ... (configuração da camada e view_state)
-r = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip=tooltip)
+# Função para gerar cores dinâmicas
+def magnitude_to_color(magnitude):
+    # ... (lógica da cor)
+    return [r, g, b, 180]
+
+# Adiciona a coluna de cor ao DataFrame
+map_data['color'] = map_data['magnitude'].apply(magnitude_to_color)
+
+# No pdk.Layer, use a nova coluna
+layer = pdk.Layer(
+    'ScatterplotLayer',
+    data=map_data,
+    get_position='[lon, lat]',
+    get_color='color', # <-- A GRANDE MUDANÇA ESTÁ AQUI
+    get_radius='magnitude * 75',
+    pickable=True
+)
+# ... (resto da configuração do pdk.Deck)
 st.pydeck_chart(r)
     """)
-
+    st.warning("Para usar os estilos de mapa do Mapbox em uma aplicação online (deploy), você precisará de uma chave de API gratuita. Adicione-a em `st.secrets.toml` com a chave `MAPBOX_API_KEY`.")
 # -----------------------------------------------------------------------
 # WIDGETS INTERATIVOS
 # -----------------------------------------------------------------------
@@ -311,9 +395,8 @@ elif escolha_pagina == "Widgets Interativos (Inputs)":
     
     st.divider()
 
-    st.subheader("Inputs de Arquivo e Câmera")
+    st.subheader("Inputs de Arquivo")
     st.file_uploader("Envie um arquivo")
-    st.camera_input("Tire uma foto")
 
     st.divider()
 
