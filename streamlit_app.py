@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pydeck as pdk
 
 
-MAPBOX_API_KEY = "pk.eyJ1IjoibXZtc29ydGUiLCJhIjoiY21laXY4MzIxMDZrbzJyb2Q0aXFhbGh4bSJ9.PH2sx9UgmR_FW_p6AaigJw"
+
 
 # =======================================================================
 # CONFIGURAÇÃO DA PÁGINA
@@ -285,26 +285,26 @@ elif escolha_pagina == "Mapas":
     
     st.subheader("`st.map`")
     st.markdown("A forma mais simples de colocar pontos em um mapa. Ótima para visualizações rápidas.")
-    st.map(map_data, zoom=3) # Zoom ajustado para ver o Brasil
+    st.map(map_data, zoom=3)
     st.code("st.map(map_data, zoom=3)")
     st.divider()
     
-    st.subheader("`st.pydeck_chart` - VERSÃO CORRIGIDA")
-    st.markdown("Agora com pontos espalhados pelo Brasil e raios ajustados para uma visualização clara.")
+    st.subheader("`st.pydeck_chart` - VERSÃO FINAL")
+    st.markdown("Agora com o mapa de fundo aparecendo corretamente.")
 
-    # Função para mapear a magnitude para uma cor (verde -> amarelo -> vermelho)
+    # Função para mapear a magnitude para uma cor
     def magnitude_to_color(magnitude):
         normalized_magnitude = magnitude / 100.0
         red = int(255 * normalized_magnitude)
         green = int(255 * (1 - normalized_magnitude))
         return [red, green, 0, 180]
 
-    # Aplica a função para criar uma nova coluna 'color' no DataFrame
+    # Aplica a função para criar a coluna 'color'
     map_data['color'] = map_data['magnitude'].apply(magnitude_to_color)
     
-    # Define a visualização inicial do mapa (centralizado no Brasil, com zoom adequado)
+    # Define a visualização inicial do mapa
     view_state = pdk.ViewState(
-        latitude=-14.2350, # Centro do Brasil
+        latitude=-14.2350,
         longitude=-51.9253,
         zoom=3.5,
         pitch=50
@@ -316,7 +316,7 @@ elif escolha_pagina == "Mapas":
         data=map_data,
         get_position='[lon, lat]',
         get_color='color',
-        get_radius='magnitude * 1000', # Raio ajustado para a escala nacional
+        get_radius='magnitude * 1000',
         pickable=True
     )
     
@@ -331,11 +331,14 @@ elif escolha_pagina == "Mapas":
         layers=[layer],
         initial_view_state=view_state,
         map_style='mapbox://styles/mapbox/dark-v9',
+        # =====> AQUI ESTÁ A LINHA QUE CORRIGE TUDO <=====
+        mapbox_key=st.secrets["MAPBOX_API_KEY"],
         tooltip=tooltip
     )
     st.pydeck_chart(r)
     
-    st.success("Mapa corrigido! Agora os pontos estão espalhados e os raios estão em uma escala apropriada.")
+    st.success("Mapa de fundo carregado com sucesso!")
+    st.info("Após seguir os passos, reinicie o app do Streamlit para que ele leia o novo arquivo `secrets.toml`.")
 # -----------------------------------------------------------------------
 # WIDGETS INTERATIVOS
 # -----------------------------------------------------------------------
