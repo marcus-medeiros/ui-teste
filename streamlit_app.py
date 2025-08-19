@@ -5,9 +5,6 @@ import time
 import matplotlib.pyplot as plt
 import pydeck as pdk
 
-
-mapbox_key = st.secrets["MAPBOX_API_KEY"]
-
 # =======================================================================
 # CONFIGURAÇÃO DA PÁGINA
 # st.set_page_config() deve ser o primeiro comando Streamlit no script.
@@ -289,56 +286,6 @@ elif escolha_pagina == "Mapas":
     st.code("st.map(map_data, zoom=3)")
     st.divider()
     
-    st.subheader("`st.pydeck_chart` - VERSÃO FINAL")
-    st.markdown("Agora com o mapa de fundo aparecendo corretamente.")
-
-    # Função para mapear a magnitude para uma cor
-    def magnitude_to_color(magnitude):
-        normalized_magnitude = magnitude / 100.0
-        red = int(255 * normalized_magnitude)
-        green = int(255 * (1 - normalized_magnitude))
-        return [red, green, 0, 180]
-
-    # Aplica a função para criar a coluna 'color'
-    map_data['color'] = map_data['magnitude'].apply(magnitude_to_color)
-    
-    # Define a visualização inicial do mapa
-    view_state = pdk.ViewState(
-        latitude=-14.2350,
-        longitude=-51.9253,
-        zoom=3.5,
-        pitch=50
-    )
-    
-    # Define a camada de visualização
-    layer = pdk.Layer(
-        'ScatterplotLayer',
-        data=map_data,
-        get_position='[lon, lat]',
-        get_color='color',
-        get_radius='magnitude * 1000',
-        pickable=True
-    )
-    
-    # Configura o tooltip
-    tooltip = {
-        "html": "<b>{tooltip}</b> <br/> Magnitude: {magnitude} <br/> Posição: [{lon:.4f}, {lat:.4f}]",
-        "style": {"backgroundColor": "steelblue", "color": "white"}
-    }
-    
-    # Monta e renderiza o mapa
-    r = pdk.Deck(
-        layers=[layer],
-        initial_view_state=view_state,
-        map_style='mapbox://styles/mapbox/dark-v9',
-        # =====> AQUI ESTÁ A LINHA QUE CORRIGE TUDO <=====
-        mapbox_key=st.secrets["MAPBOX_API_KEY"],
-        tooltip=tooltip
-    )
-    st.pydeck_chart(r)
-    
-    st.success("Mapa de fundo carregado com sucesso!")
-    st.info("Após seguir os passos, reinicie o app do Streamlit para que ele leia o novo arquivo `secrets.toml`.")
 # -----------------------------------------------------------------------
 # WIDGETS INTERATIVOS
 # -----------------------------------------------------------------------
