@@ -38,6 +38,13 @@ def carregar_dados():
     latitudes = np.random.uniform(LAT_RANGE[0], LAT_RANGE[1], 200)
     longitudes = np.random.uniform(LON_RANGE[0], LON_RANGE[1], 200)
     
+    # Criando alguns pontos de exemplo
+    df = pd.DataFrame({
+        'lat': [-23.5505, -22.9068, -25.4284],
+        'lon': [-46.6333, -43.1729, -49.2733]
+    })
+
+
     map_data = pd.DataFrame({
         'lat': latitudes,
         'lon': longitudes
@@ -286,6 +293,7 @@ elif escolha_pagina == "Mapas":
     st.code("st.map(map_data, zoom=3)")
     st.divider()
     
+    st.map(df)
 # -----------------------------------------------------------------------
 # WIDGETS INTERATIVOS
 # -----------------------------------------------------------------------
