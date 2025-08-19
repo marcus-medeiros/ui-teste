@@ -298,17 +298,17 @@ elif escolha_pagina == "Mapas":
     MAPBOX_TOKEN = "pk.eyJ1IjoibXZtc29ydGUiLCJhIjoiY21laXY4MzIxMDZrbzJyb2Q0aXFhbGh4bSJ9.PH2sx9UgmR_FW_p6AaigJw"
 
     # DataFrame de exemplo
-    df2 = pd.DataFrame({
+    df = pd.DataFrame({
         "lat": [-23.55, -22.90, -25.43],
         "lon": [-46.63, -43.17, -49.27],
         "cidade": ["São Paulo", "Rio de Janeiro", "Curitiba"],
-        "valor": [100, 200, 300]  # usado na cor
+        "valor": [100, 200, 300]
     })
 
     # Camada de pontos
     layer = pdk.Layer(
         "ScatterplotLayer",
-        data=df2,
+        data=df,
         get_position='[lon, lat]',
         get_fill_color='[valor, 50, 200, 160]',
         get_radius=20000,
@@ -317,13 +317,15 @@ elif escolha_pagina == "Mapas":
     # Estado inicial do mapa
     view_state = pdk.ViewState(latitude=-23, longitude=-46, zoom=4)
 
-    # Renderizar com o token do Mapbox
-    st.pydeck_chart(pdk.Deck(
+    # Renderizar o mapa com token do Mapbox
+    deck = pdk.Deck(
         map_style="mapbox://styles/mapbox/light-v9",
         initial_view_state=view_state,
         layers=[layer],
-        mapbox_key=MAPBOX_TOKEN
-    ))
+        api_keys={"mapbox": MAPBOX_TOKEN}  # token aqui
+    )
+
+    st.pydeck_chart(deck)
 # -----------------------------------------------------------------------
 # WIDGETS INTERATIVOS
 # -----------------------------------------------------------------------
