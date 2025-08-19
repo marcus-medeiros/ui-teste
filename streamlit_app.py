@@ -22,6 +22,9 @@ st.set_page_config(
 # =======================================================================
 # DADOS DE EXEMPLO (PARA GRÁFICOS, TABELAS E MAPAS)
 # =======================================================================
+# =======================================================================
+# DADOS DE EXEMPLO (PARA GRÁFICOS, TABELAS E MAPAS)
+# =======================================================================
 @st.cache_data
 def carregar_dados():
     # Dados para gráficos
@@ -29,12 +32,21 @@ def carregar_dados():
         np.random.randn(20, 3),
         columns=['a', 'b', 'c']
     )
-    # Dados para mapas
-    map_data = pd.DataFrame(
-        np.random.randn(200, 2) / [30, 30] + [-23.55, -46.63], # Coordenadas próximas a São Paulo
-        columns=['lat', 'lon']
-    )
-    map_data['tooltip'] = [f"Ponto {i}" for i in range(len(map_data))]
+    
+    # --- DADOS DO MAPA CORRIGIDOS ---
+    # Gerando 200 pontos de dados espalhados aleatoriamente pelo Brasil
+    LAT_RANGE = [-33.75, 5.27]   # Latitude (do Sul ao Norte)
+    LON_RANGE = [-73.99, -34.79] # Longitude (do Oeste ao Leste)
+    
+    latitudes = np.random.uniform(LAT_RANGE[0], LAT_RANGE[1], 200)
+    longitudes = np.random.uniform(LON_RANGE[0], LON_RANGE[1], 200)
+    
+    map_data = pd.DataFrame({
+        'lat': latitudes,
+        'lon': longitudes
+    })
+    
+    map_data['tooltip'] = [f"Evento Aleatório {i}" for i in range(len(map_data))]
     map_data['magnitude'] = np.random.randint(1, 100, size=len(map_data))
     
     return chart_data, map_data
@@ -172,9 +184,6 @@ col3.metric("Vendas (Mês)", "R$ 150.3k", "12%", delta_color="inverse")
 # -----------------------------------------------------------------------
 # GRÁFICOS
 # -----------------------------------------------------------------------
-# -----------------------------------------------------------------------
-# GRÁFICOS
-# -----------------------------------------------------------------------
 elif escolha_pagina == "Gráficos":
     st.header("📈 Gráficos")
     st.info("Todos os gráficos abaixo são gerados a partir do mesmo conjunto de dados aleatórios para facilitar a comparação.")
@@ -276,88 +285,57 @@ elif escolha_pagina == "Mapas":
     
     st.subheader("`st.map`")
     st.markdown("A forma mais simples de colocar pontos em um mapa. Ótima para visualizações rápidas.")
-    st.map(map_data, zoom=10)
-    st.code("st.map(map_data, zoom=10)")
+    st.map(map_data, zoom=3) # Zoom ajustado para ver o Brasil
+    st.code("st.map(map_data, zoom=3)")
     st.divider()
     
-    st.subheader("`st.pydeck_chart` - APRIMORADO")
-    st.markdown("Para mapas complexos e informativos. Agora com **cores e tamanhos dinâmicos** baseados na magnitude.")
+    st.subheader("`st.pydeck_chart` - VERSÃO CORRIGIDA")
+    st.markdown("Agora com pontos espalhados pelo Brasil e raios ajustados para uma visualização clara.")
 
-    # --- INÍCIO DA LÓGICA DE CUSTOMIZAÇÃO ---
-
-    # 1. Função para mapear a magnitude (0-100) para uma cor (verde -> amarelo -> vermelho)
+    # Função para mapear a magnitude para uma cor (verde -> amarelo -> vermelho)
     def magnitude_to_color(magnitude):
-        # Normaliza a magnitude para uma escala de 0 a 1
         normalized_magnitude = magnitude / 100.0
-        # Interpola a cor: começa verde, passa por amarelo e termina vermelho
         red = int(255 * normalized_magnitude)
         green = int(255 * (1 - normalized_magnitude))
-        # Retorna uma lista no formato [R, G, B, Opacidade]
         return [red, green, 0, 180]
 
-    # 2. Aplica a função para criar uma nova coluna 'color' no DataFrame
+    # Aplica a função para criar uma nova coluna 'color' no DataFrame
     map_data['color'] = map_data['magnitude'].apply(magnitude_to_color)
     
-    # --- FIM DA LÓGICA DE CUSTOMIZAÇÃO ---
-
-    # Define a visualização inicial do mapa (localização, zoom, ângulo)
+    # Define a visualização inicial do mapa (centralizado no Brasil, com zoom adequado)
     view_state = pdk.ViewState(
-        latitude=-23.55,
-        longitude=-46.63,
-        zoom=10,
-        pitch=50  # Ângulo de inclinação para um efeito 3D
+        latitude=-14.2350, # Centro do Brasil
+        longitude=-51.9253,
+        zoom=3.5,
+        pitch=50
     )
     
-    # Define a camada de visualização (Layer)
+    # Define a camada de visualização
     layer = pdk.Layer(
-        'ScatterplotLayer',      # Tipo de camada: pontos de dispersão
-        data=map_data,           # Fonte dos dados
-        get_position='[lon, lat]', # Colunas de longitude e latitude
-        get_color='color',       # Usa a coluna 'color' que acabamos de criar
-        get_radius='magnitude * 75', # Raio proporcional à magnitude
-        pickable=True            # Habilita o tooltip ao passar o mouse
+        'ScatterplotLayer',
+        data=map_data,
+        get_position='[lon, lat]',
+        get_color='color',
+        get_radius='magnitude * 1000', # Raio ajustado para a escala nacional
+        pickable=True
     )
     
-    # Configura o tooltip que aparece ao passar o mouse
+    # Configura o tooltip
     tooltip = {
         "html": "<b>{tooltip}</b> <br/> Magnitude: {magnitude} <br/> Posição: [{lon:.4f}, {lat:.4f}]",
         "style": {"backgroundColor": "steelblue", "color": "white"}
     }
     
-    # Monta o objeto Deck com todas as configurações
+    # Monta e renderiza o mapa
     r = pdk.Deck(
         layers=[layer],
         initial_view_state=view_state,
-        map_style='mapbox://styles/mapbox/dark-v9', # Estilo de mapa escuro para destacar as cores
+        map_style='mapbox://styles/mapbox/dark-v9',
         tooltip=tooltip
     )
-    
-    # Renderiza o mapa no Streamlit
     st.pydeck_chart(r)
     
-    st.info("Passe o mouse sobre os pontos para ver o tooltip interativo! Note como a cor e o tamanho agora refletem a magnitude.")
-    st.code("""
-# Função para gerar cores dinâmicas
-def magnitude_to_color(magnitude):
-    # ... (lógica da cor)
-    return [r, g, b, 180]
-
-# Adiciona a coluna de cor ao DataFrame
-map_data['color'] = map_data['magnitude'].apply(magnitude_to_color)
-
-# No pdk.Layer, use a nova coluna
-layer = pdk.Layer(
-    'ScatterplotLayer',
-    data=map_data,
-    get_position='[lon, lat]',
-    get_color='color', # <-- A GRANDE MUDANÇA ESTÁ AQUI
-    get_radius='magnitude * 75',
-    pickable=True
-)
-# ... (resto da configuração do pdk.Deck)
-st.pydeck_chart(r)
-    """)
-    st.warning("Para usar os estilos de mapa do Mapbox em uma aplicação online (deploy), você precisará de uma chave de API gratuita. Adicione-a em `st.secrets.toml` com a chave `MAPBOX_API_KEY`.")
+    st.success("Mapa corrigido! Agora os pontos estão espalhados e os raios estão em uma escala apropriada.")
 # -----------------------------------------------------------------------
 # WIDGETS INTERATIVOS
 # -----------------------------------------------------------------------
