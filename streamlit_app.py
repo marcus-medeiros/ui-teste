@@ -297,51 +297,93 @@ elif escolha_pagina == "Mapas":
 
     MAPBOX_TOKEN = "pk.eyJ1IjoibXZtc29ydGUiLCJhIjoiY21laXY4MzIxMDZrbzJyb2Q0aXFhbGh4bSJ9.PH2sx9UgmR_FW_p6AaigJw"
 
-    # GeoJSON simplificado para SP (um retângulo de exemplo)
-    geojson_sp = {
-    "type": "FeatureCollection",
-    "features": [
-        {
-        "type": "Feature",
-        "properties": {"nome": "São Paulo"},
-        "geometry": {
-            "type": "Polygon",
-            "coordinates": [[
-            [-53.1, -20.5],
-            [-53.1, -25.5],
-            [-45.0, -25.5],
-            [-45.0, -20.5],
-            [-53.1, -20.5]
-            ]]
-        }
-        }
-    ]
+    # =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_
+    # GEOJSON SIMPLIFICADO PARA O ESTADO DE SÃO PAULO (~100 PONTOS)
+    # Esta versão é uma aproximação do contorno real, com muito menos detalhes.
+    # =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_
+    geojson_sp_simplificado = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {"nome": "São Paulo"},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [[
+                        [-51.55, -19.85], [-51.05, -19.95], [-50.55, -20.15], [-50.05, -20.35],
+                        [-49.55, -20.55], [-49.05, -20.95], [-48.55, -21.35], [-48.05, -21.65],
+                        [-47.55, -21.95], [-47.05, -22.25], [-46.55, -22.55], [-46.05, -22.85],
+                        [-45.55, -23.15], [-45.05, -23.45], [-44.85, -23.5], [-44.75, -23.6],
+                        [-44.7, -23.7], [-44.75, -23.8], [-44.85, -23.9], [-44.95, -24.0],
+                        [-45.1, -24.1], [-45.3, -24.2], [-45.5, -24.3], [-45.7, -24.4],
+                        [-45.9, -24.5], [-46.1, -24.6], [-46.3, -24.7], [-46.5, -24.8],
+                        [-46.7, -24.9], [-46.9, -25.0], [-47.1, -25.1], [-47.3, -25.2],
+                        [-47.5, -25.25], [-47.7, -25.3], [-47.9, -25.35], [-48.1, -25.4],
+                        [-48.3, -25.4], [-48.5, -25.35], [-48.7, -25.3], [-48.9, -25.25],
+                        [-49.1, -25.2], [-49.3, -25.15], [-49.5, -25.1], [-49.7, -25.05],
+                        [-49.9, -25.0], [-50.1, -24.9], [-50.3, -24.8], [-50.5, -24.7],
+                        [-50.7, -24.6], [-50.9, -24.5], [-51.1, -24.4], [-51.3, -24.3],
+                        [-51.5, -24.2], [-51.7, -24.1], [-51.9, -24.0], [-52.1, -23.9],
+                        [-52.3, -23.8], [-52.5, -23.7], [-52.7, -23.6], [-52.9, -23.5],
+                        [-53.1, -23.3], [-53.1, -23.1], [-53.05, -22.9], [-52.95, -22.7],
+                        [-52.85, -22.5], [-52.75, -22.3], [-52.65, -22.1], [-52.55, -21.9],
+                        [-52.45, -21.7], [-52.3, -21.5], [-52.15, -21.3], [-52.0, -21.1],
+                        [-51.85, -20.9], [-51.7, -20.7], [-51.6, -20.5], [-51.5, -20.3],
+                        [-51.45, -20.1], [-51.55, -19.85]
+                    ]]
+                }
+            }
+        ]
     }
 
-    # Camada de polígono
-    polygon_layer = pdk.Layer(
-        "GeoJsonLayer",
-        geojson_sp,
-        stroked=True,
-        filled=True,
-        extruded=False,
-        get_fill_color="[255, 0, 0, 180]",  # vermelho com transparência
-        get_line_color=[255, 255, 255],
-        line_width_min_pixels=2,
+
+    # --- Configuração do Mapa Pydeck ---
+
+    # Chave da API do Mapbox (necessária para o fundo do mapa)
+    # Lembre-se de criar o arquivo .streamlit/secrets.toml com sua chave
+    try:
+        MAPBOX_API_KEY = st.secrets["MAPBOX_API_KEY"]
+    except FileNotFoundError:
+        st.error("Arquivo secrets.toml não encontrado. O mapa de fundo não será exibido.")
+        st.info("Crie um arquivo em `.streamlit/secrets.toml` e adicione: `MAPBOX_API_KEY = 'sua_chave_aqui'`")
+        MAPBOX_API_KEY = ""
+
+
+    # Define a visualização inicial do mapa
+    view_state = pdk.ViewState(
+        latitude=-22.5,  # Latitude central de SP
+        longitude=-48.6, # Longitude central de SP
+        zoom=5.5,
+        pitch=0 # Sem inclinação para uma visão 2D
     )
 
-    # Estado inicial do mapa (aprox. centro SP)
-    view_state = pdk.ViewState(latitude=-22.5, longitude=-48, zoom=6)
+    # Define a camada GeoJsonLayer para desenhar o polígono
+    geojson_layer = pdk.Layer(
+        'GeoJsonLayer',
+        data=geojson_sp_simplificado,
+        opacity=0.4,
+        stroked=True,         # Desenha a borda
+        filled=True,          # Preenche a área
+        extruded=False,        # Sem efeito 3D
+        wireframe=True,
+        get_fill_color='[65, 105, 225]',  # Cor do preenchimento (Azul Royal)
+        get_line_color='[0, 0, 139]',    # Cor da borda (Azul Escuro)
+        get_line_width=2500,
+    )
 
-    # Renderizar
-    deck = pdk.Deck(
-        layers=[polygon_layer],
+    # Monta o objeto Deck com todas as configurações
+    r = pdk.Deck(
+        layers=[geojson_layer],
         initial_view_state=view_state,
-        map_style="mapbox://styles/mapbox/light-v9",
-        api_keys={"mapbox": MAPBOX_TOKEN}
+        map_style=pdk.map_styles.MAPBOX_LIGHT,
+        mapbox_key=MAPBOX_API_KEY
     )
 
-    st.pydeck_chart(deck)
+    # Renderiza o mapa no Streamlit
+    st.pydeck_chart(r)
+
+    st.subheader("O GeoJSON Utilizado:")
+    st.json(geojson_sp_simplificado)
 # -----------------------------------------------------------------------
 # WIDGETS INTERATIVOS
 # -----------------------------------------------------------------------
